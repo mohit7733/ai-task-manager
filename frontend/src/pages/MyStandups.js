@@ -124,7 +124,7 @@ const MyStandups = () => {
                         marginTop: 4,
                         whiteSpace: 'pre-line',
                         fontSize: 14,
-                      }}>{standup.completedYesterday}</p>
+                      }} title={standup.completedYesterday}>{standup.completedYesterday}</p>
                     </div>
 
                     <div className="standup-section" style={{ marginBottom: 4 }}>
@@ -136,7 +136,7 @@ const MyStandups = () => {
                         marginTop: 4,
                         whiteSpace: 'pre-line',
                         fontSize: 14,
-                      }}>{standup.planToday}</p>
+                      }} title={standup.planToday}>{standup.planToday}</p>
                     </div>
 
                     <div className="standup-section">

@@ -55,8 +55,8 @@ const TeamView = () => {
 
   const teams = [...new Set(users.map(u => u.team))];
   const submittedUsers = standups.map(s => s.user._id.toString());
-  const missingUsers = users.filter(u => 
-    (!selectedTeam || u.team === selectedTeam) && 
+  const missingUsers = users.filter(u =>
+    (!selectedTeam || u.team === selectedTeam) &&
     !submittedUsers.includes(u._id.toString())
   );
 
@@ -129,41 +129,123 @@ const TeamView = () => {
                   <p>No team members have submitted standups for {format(new Date(selectedDate), 'MMMM d, yyyy')}.</p>
                 </div>
               ) : (
-                <div className="grid">
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: 20,
+                  }}
+                >
                   {standups.map((standup) => (
-                    <div key={standup._id} className="standup-card">
-                      <div className="standup-header">
+                    <div
+                      key={standup._id}
+                      className="standup-card"
+                      style={{
+                        background: 'var(--panel-bg)',
+                        borderRadius: 14,
+                        boxShadow: '0 2px 12px 0 rgba(10,20,60,.05)',
+                        padding: '24px 20px 18px 20px',
+                        marginBottom: 16,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 18,
+                        border: '1px solid var(--border-color, #ececec)',
+                        transition: 'box-shadow 0.13s',
+                        flex: '0 0 calc(25% - 20px)',
+                        minWidth: 260,
+                        maxWidth: 350,
+                      }}
+                    >
+                      <span
+                        className={` chip-${standup.user.role}`}
+                        style={{
+                          fontSize: 12,
+                          background: 'var(--primary-bg, #e5ecff)',
+                          color: 'var(--primary-text, #223fa4)',
+                          padding: '2px 10px',
+                          borderRadius: 12,
+                          fontWeight: 500,
+                          letterSpacing: 0.15,
+                          textTransform: 'capitalize',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {standup.user.role}
+                      </span>
+                      <div
+                        className="standup-header"
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 8,
+                          paddingBottom: 10,
+                          borderBottom: '1px solid #ececec',
+                          gap: 12,
+                        }}
+                      >
+
                         <div>
-                          <h3 style={{ margin: 0 }}>
+                          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 600, letterSpacing: 0.2 }}>
                             {standup.user.name}
                           </h3>
-                          <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                            {standup.user.team} • {standup.user.email}
+                          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                            {standup.user.team ? `${standup.user.team} • ` : ''}
+                            {standup.user.email}
                           </span>
                         </div>
-                        <span className={`badge badge-${standup.user.role}`}>
-                          {standup.user.role}
-                        </span>
+
+                      </div>
+
+                      <div className="standup-section" style={{ marginBottom: 4 }}>
+                        <div style={{ fontWeight: 500, fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 17 }}>✅</span> Completed Yesterday
+                        </div>
+                        <p style={{
+                          color: 'var(--text-muted)',
+                          marginTop: 4,
+                          whiteSpace: 'pre-line',
+                          fontSize: 14,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }} title={standup.completedYesterday}>{standup.completedYesterday}</p>
+                      </div>
+
+                      <div className="standup-section" style={{ marginBottom: 4 }}>
+                        <div style={{ fontWeight: 500, fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 17 }}>🎯</span> Plan Today
+                        </div>
+                        <p style={{
+                          color: 'var(--text-muted)',
+                          marginTop: 4,
+                          whiteSpace: 'pre-line',
+                          fontSize: 14,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }} title={standup.planToday}>{standup.planToday}</p>
                       </div>
 
                       <div className="standup-section">
-                        <h4>✅ Completed Yesterday</h4>
-                        <p>{standup.completedYesterday}</p>
-                      </div>
-
-                      <div className="standup-section">
-                        <h4>🎯 Plan Today</h4>
-                        <p>{standup.planToday}</p>
-                      </div>
-
-                      <div className="standup-section">
-                        <h4>🚧 Blockers</h4>
-                        <p style={{ color: standup.blockers && standup.blockers.toLowerCase() !== 'none' ? 'var(--danger)' : 'var(--text-muted)' }}>
+                        <div style={{ fontWeight: 500, fontSize: 15, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 17 }}>🚧</span> Blockers
+                        </div>
+                        <p
+                          style={{
+                            color:
+                              standup.blockers && standup.blockers.toLowerCase() !== 'none'
+                                ? 'var(--danger)'
+                                : 'var(--text-muted)',
+                            marginTop: 4,
+                            whiteSpace: 'pre-line',
+                            fontSize: 14,
+                            fontStyle: !standup.blockers ? 'italic' : undefined,
+                          }}
+                        >
                           {standup.blockers || 'None'}
                         </p>
                       </div>
 
-                      <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px' }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 12 }}>
                         Submitted: {format(new Date(standup.createdAt), 'h:mm a')}
                       </div>
                     </div>
