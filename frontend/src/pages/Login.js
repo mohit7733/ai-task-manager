@@ -93,6 +93,12 @@ const Login = () => {
               </button>
             </div>
           </div>
+          
+          <div style={{ textAlign: "right", margin: "8px 0 16px 0" }}>
+            <Link to="/forgot-password" style={{ color: "var(--primary)", fontSize: "14px", textDecoration: "underline", cursor: "pointer" }}>
+              Forgot password?
+            </Link>
+          </div>
           <button type="submit" className="primary-btn" style={{ width: '100%' }} disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
           </button>

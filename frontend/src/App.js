@@ -13,6 +13,7 @@ import TeamView from './pages/TeamView';
 import TasksBoard from './pages/TasksBoard';
 import Timeline from './pages/Timeline';
 import './App.css';
+import ForgotPassword from './forgetpassword';
 
 function App() {
   return (
@@ -62,6 +63,12 @@ function App() {
                 </PrivateRoute>
               }
             />
+
+            <Route
+              path='/forgot-password'
+              element={<ForgotPassword />}
+            />
+
             <Route
               path="/team"
               element={

@@ -3,8 +3,22 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
-
+const nodemailer = require('nodemailer');
 const router = express.Router();
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: process.env.SMTP_PORT ? 587 : 587,
+  secure: process.env.SMTP_SECURE === 'false', // true for 465, false for other ports
+  auth: {
+    user: "mohitbeniwal@aimantra.co",
+    pass: "cizh mbxz kzan bdci" // process.env.SMTP_PASS,
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: 20000, // Render needs longer timeout
+});
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -112,6 +126,102 @@ router.get('/me', protect, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required.' });
+    }
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      // For security, don't indicate if email exists or not
+      return res.json({ message: 'If this email is registered, you will receive an OTP shortly.' });
+    }
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Store OTP and expiry in user model (for this example)
+    user.resetOTP = otp;
+    user.resetOTPExpires = Date.now() + 10 * 60 * 1000; // 10 mins from now
+    await user.save();
+    const mailOptions = {
+      from: process.env.EMAIL_FROM,
+      to: user.email,
+      subject: 'Password Reset OTP - Task-manager',
+      text: `Your OTP for resetting password is: ${otp}. This OTP is valid for 10 minutes.`,
+      html: `<p>Your OTP for resetting password is: <b>${otp}</b></p><p>This OTP is valid for 10 minutes.</p>`,
+    };
+    await transporter.sendMail(mailOptions);
+    res.json({ ok: true, message: 'If this email is registered, you will receive an OTP shortly.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
+});
+
+
+// @route   POST /api/auth/verify-otp
+// @desc    Verify OTP for password reset
+// @access  Public
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required.' });
+    }
+    const user = await User.findOne({ email });
+    if (
+      !user ||
+      !user.resetOTP ||
+      !user.resetOTPExpires ||
+      user.resetOTP != otp
+      || user.resetOTPExpires < Date.now()
+    ) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+    // user.resetOTP = null;
+    // user.resetOTPExpires = null;
+    // await user.save();
+    res.json({ ok: true, message: 'OTP verified.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
+});
+
+// @route   POST /api/auth/reset-password
+// @desc    Reset password after OTP verified
+// @access  Public
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, newPassword, otp } = req.body;
+    if (!email || !newPassword || !otp) {
+      return res.status(400).json({ message: 'Email, new password, and OTP are required.' });
+    }
+    const user = await User.findOne({ email }).select('+password');
+    if (
+      !user ||
+      !user.resetOTP ||
+      !user.resetOTPExpires ||
+      user.resetOTP != otp ||
+      user.resetOTPExpires < Date.now()
+    ) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+    // Set new password
+    user.password = newPassword;
+    user.resetOTP = null;
+    user.resetOTPExpires = null;
+    await user.save();
+    res.json({ ok: true, message: 'Password has been reset successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
+});
+
 
 module.exports = router;
 

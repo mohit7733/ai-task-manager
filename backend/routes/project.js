@@ -24,8 +24,6 @@ router.post('/', protect, authorize('lead', 'admin'), async (req, res) => {
 router.get('/', protect, async (req, res) => {
     try {
         const Projectdata = await Projects.find({});
-        console.log(Projectdata);
-
         res.json(Projectdata);
     } catch (error) {
         res.status(500).json({ error: error.message || error });
